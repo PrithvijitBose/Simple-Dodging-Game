@@ -1,0 +1,81 @@
+import pygame
+import sys
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Set up display
+width, height = 600, 400
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Simple Dodging Game")
+
+# Colors
+white = (255, 255, 255)
+black = (0, 0, 0)
+
+# Player
+player_size = 50
+player_x = width // 2 - player_size // 2
+player_y = height - 2 * player_size
+player_speed = 5
+
+# Block
+block_size = 50
+block_speed = 5
+
+def draw_player(x, y):
+    pygame.draw.rect(screen, white, [x, y, player_size, player_size])
+
+def draw_block(x, y):
+    pygame.draw.rect(screen, white, [x, y, block_size, block_size])
+
+def game_over():
+    font = pygame.font.Font(None, 36)
+    text = font.render("Game Over", True, white)
+    screen.blit(text, [width // 2 - 100, height // 2])
+    pygame.display.flip()
+    pygame.time.wait(2000)
+    pygame.quit()
+    sys.exit()
+
+# Game loop
+clock = pygame.time.Clock()
+blocks = []
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    keys = pygame.key.get_pressed()
+    player_x += (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * player_speed
+
+    screen.fill(black)
+
+    draw_player(player_x, player_y)
+
+    # Create new blocks
+    if random.randint(1, 100) < 5:
+        block_x = random.randint(0, width - block_size)
+        block_y = -block_size
+        blocks.append([block_x, block_y])
+
+    # Move and draw blocks
+    for block in blocks:
+        block[1] += block_speed
+        draw_block(block[0], block[1])
+
+        # Check collision with player
+        if (
+            player_x < block[0] < player_x + player_size
+            and player_y < block[1] < player_y + player_size
+        ):
+            game_over()
+
+    # Remove blocks that are off the screen
+    blocks = [block for block in blocks if block[1] < height]
+
+    pygame.display.flip()
+    clock.tick(30)
